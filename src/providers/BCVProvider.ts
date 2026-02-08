@@ -2,6 +2,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { BaseProvider } from "./BaseProvider";
 import { RateData } from "../types";
+import https from "https";
 
 export class BCVProvider extends BaseProvider {
   private readonly url: string;
@@ -19,14 +20,15 @@ export class BCVProvider extends BaseProvider {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
+        httpsAgent: new https.Agent({ rejectUnauthorized: false }),
       });
 
       const $ = cheerio.load(response.data);
       const rates: RateData[] = [];
 
       // Extract rates (adjust selectors based on actual page structure)
-      const usdRate = this.extractRate($, "USD");
-      const eurRate = this.extractRate($, "EUR");
+      const usdRate = this.extractRate($, "dolar");
+      const eurRate = this.extractRate($, "euro");
 
       const currentHour = new Date().getHours();
       const updateType = currentHour < 13 ? "AM" : "PM";
@@ -50,13 +52,29 @@ export class BCVProvider extends BaseProvider {
     }
   }
 
-  private extractRate($: cheerio.CheerioAPI, currency: string): number | null {
-    // TODO: Implement actual selector logic based on BCV website structure
-    // Example placeholder:
-    // const rateText = $(`#dolar .centrado strong`).first().text();
-    // return parseFloat(rateText.replace(',', '.'));
+  private extractRate($: cheerio.CheerioAPI, divId: string): number | null {
+    try {
+      // Find the div by ID (e.g., #euro or #dolar)
+      const rateText = $(`#${divId} .centrado strong`).first().text().trim();
 
-    // You'll need to inspect https://www.bcv.org.ve/ to find the right selectors
-    return null;
+      if (!rateText) {
+        console.warn(`No rate found for ${divId}`);
+        return null;
+      }
+
+      // Remove spaces and convert comma to dot for decimal parsing
+      const cleanedRate = rateText.replace(/\s/g, "").replace(",", ".");
+      const rate = parseFloat(cleanedRate);
+
+      if (isNaN(rate)) {
+        console.warn(`Invalid rate format for ${divId}: ${rateText}`);
+        return null;
+      }
+
+      return rate;
+    } catch (error) {
+      console.error(`Error extracting rate for ${divId}:`, error);
+      return null;
+    }
   }
 }

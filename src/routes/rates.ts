@@ -4,12 +4,20 @@ import { validateDateRange } from "../middleware/validator";
 
 const router = Router();
 
+// Helper function to ensure query param is a string
+const getStringParam = (param: unknown): string | undefined => {
+  if (typeof param === "string") return param;
+  if (Array.isArray(param) && param.length > 0) return param[0];
+  return undefined;
+};
+
 // GET /api/rates/latest - Get latest rates
 router.get(
   "/latest",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { provider, currency } = req.query;
+      const provider = getStringParam(req.query.provider);
+      const currency = getStringParam(req.query.currency);
       const rates = await rateService.getLatestRates(
         provider as string,
         currency as string,
@@ -31,7 +39,10 @@ router.get(
   validateDateRange,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { currency, startDate, endDate, provider } = req.query;
+      const currency = getStringParam(req.query.currency);
+      const startDate = getStringParam(req.query.startDate);
+      const endDate = getStringParam(req.query.endDate);
+      const provider = getStringParam(req.query.provider);
 
       if (!currency) {
         res.status(400).json({
@@ -76,9 +87,16 @@ router.get(
   "/date/:date",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { date } = req.params;
-      const { provider } = req.query;
+      const date = getStringParam(req.params.date);
+      const provider = getStringParam(req.query.provider);
 
+      if (!date) {
+        res.status(400).json({
+          success: false,
+          error: "date parameter is required",
+        });
+        return;
+      }
       const rates = await rateService.getRatesByDate(date, provider as string);
 
       res.json({

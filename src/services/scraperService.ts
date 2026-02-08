@@ -1,18 +1,13 @@
 import { BaseProvider } from "../providers/BaseProvider";
 import { BCVProvider } from "../providers/BCVProvider";
+import { BinanceProvider } from "../providers/BinanceProvider";
 import { ScraperResult } from "../types";
-// Future providers:
-// import { BinanceProvider } from '../providers/BinanceProvider';
 
 class ScraperService {
   private providers: BaseProvider[];
 
   constructor() {
-    this.providers = [
-      new BCVProvider(),
-      // Add more providers here as you build them:
-      // new BinanceProvider(),
-    ];
+    this.providers = [new BCVProvider(), new BinanceProvider()];
   }
 
   async scrapeAll(): Promise<ScraperResult[]> {

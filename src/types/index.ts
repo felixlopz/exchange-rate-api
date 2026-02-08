@@ -33,3 +33,35 @@ export interface ApiResponse<T> {
   meta?: Record<string, any>;
   message?: string;
 }
+
+export interface BinanceOffer {
+  adv: {
+    price: string;
+    surplusAmount: string;
+  };
+  advertiser: {
+    nickName: string;
+    monthFinishRate: number;
+    userType: string;
+  };
+}
+
+export interface BinanceResponse {
+  code: string;
+  data: BinanceOffer[];
+  total: number;
+  success: boolean;
+}
+
+export interface LiveRateResponse {
+  buy_rate: number | null;
+  sell_rate: number | null;
+  average_rate: number | null;
+  spread: number | null;
+  spread_percentage: number | null;
+  calculated_at: string;
+  sample_size: {
+    buy: number;
+    sell: number;
+  };
+}
