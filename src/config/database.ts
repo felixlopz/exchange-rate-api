@@ -3,7 +3,9 @@ import config from "./enviroment";
 
 const poolConfig: PoolConfig = {
   connectionString: config.DATABASE_URL,
-  ssl: config.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 };
 
 export const pool = new Pool(poolConfig);
